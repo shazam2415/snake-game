@@ -107,6 +107,10 @@ int main(int argc, char *argv[]) {
     Uint64 now = SDL_GetTicks();
     if (now - last_move >= 150) {
       snake_move(&snake);
+      if (snake.body[0].x < 0 || snake.body[0].x >= GRID_WIDTH ||
+          snake.body[0].y < 0 || snake.body[0].y >= GRID_HEIGHT) {
+        running = 0;
+      }
       if (snake.body[0].x == food.x && snake.body[0].y == food.y) {
         snake.length++;
         food_spawn(&food);
