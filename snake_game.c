@@ -1,4 +1,5 @@
 #include <SDL3/SDL.h>
+#include <stdlib.h>
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -31,6 +32,11 @@ void snake_init(Snake *snake) {
   snake->body[1].y = GRID_HEIGHT / 2;
   snake->body[2].x = GRID_WIDTH / 2 - 2;
   snake->body[2].y = GRID_HEIGHT / 2;
+}
+
+void food_spawn(Point *food) {
+  food->x = rand() % GRID_WIDTH;
+  food->y = rand() % GRID_HEIGHT;
 }
 
 void snake_move(Snake *snake) {
@@ -70,7 +76,10 @@ int main(int argc, char *argv[]) {
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
   Snake snake;
+  Point food;
   snake_init(&snake);
+  srand(SDL_GetTicks());
+  food_spawn(&food);
 
   int running = 1;
   Uint64 last_move = SDL_GetTicks();
@@ -110,6 +119,10 @@ int main(int argc, char *argv[]) {
                         snake.body[i].y * CELL_SIZE, CELL_SIZE, CELL_SIZE};
       SDL_RenderFillRect(renderer, &rect);
     }
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_FRect frect = {food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE,
+                       CELL_SIZE};
+    SDL_RenderFillRect(renderer, &frect);
     SDL_RenderPresent(renderer);
   }
 
