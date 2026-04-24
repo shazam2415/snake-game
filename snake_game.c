@@ -33,6 +33,28 @@ void snake_init(Snake *snake) {
   snake->body[2].y = GRID_HEIGHT / 2;
 }
 
+void snake_move(Snake *snake) {
+  // gövdeyi kaydır (arkadan öne)
+  for (int i = snake->length - 1; i > 0; i--) {
+    snake->body[i] = snake->body[i - 1];
+  }
+  // kafayı yöne göre ilerlet
+  switch (snake->dir) {
+  case DIR_RIGHT:
+    snake->body[0].x++;
+    break;
+  case DIR_LEFT:
+    snake->body[0].x--;
+    break;
+  case DIR_UP:
+    snake->body[0].y--;
+    break;
+  case DIR_DOWN:
+    snake->body[0].y++;
+    break;
+  }
+}
+
 int main(int argc, char *argv[]) {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
@@ -51,6 +73,7 @@ int main(int argc, char *argv[]) {
   snake_init(&snake);
 
   int running = 1;
+  Uint64 last_move = SDL_GetTicks();
   SDL_Event event;
 
   while (running) {
@@ -58,11 +81,24 @@ int main(int argc, char *argv[]) {
       if (event.type == SDL_EVENT_QUIT)
         running = 0;
       if (event.type == SDL_EVENT_KEY_DOWN) {
-        if (event.key.scancode == SDL_SCANCODE_ESCAPE ||
-            event.key.scancode == SDL_SCANCODE_Q) {
+        SDL_Scancode sc = event.key.scancode;
+        if (sc == SDL_SCANCODE_ESCAPE || sc == SDL_SCANCODE_Q)
           running = 0;
-        }
+        else if (sc == SDL_SCANCODE_UP && snake.dir != DIR_DOWN)
+          snake.dir = DIR_UP;
+        else if (sc == SDL_SCANCODE_DOWN && snake.dir != DIR_UP)
+          snake.dir = DIR_DOWN;
+        else if (sc == SDL_SCANCODE_LEFT && snake.dir != DIR_RIGHT)
+          snake.dir = DIR_LEFT;
+        else if (sc == SDL_SCANCODE_RIGHT && snake.dir != DIR_LEFT)
+          snake.dir = DIR_RIGHT;
       }
+    }
+
+    Uint64 now = SDL_GetTicks();
+    if (now - last_move >= 150) {
+      snake_move(&snake);
+      last_move = now;
     }
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
