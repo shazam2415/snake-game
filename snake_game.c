@@ -194,6 +194,12 @@ int main(int argc, char *argv[]) {
     // yılanı çiz
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE); // yeşil
     for (int i = 0; i < snake.length; i++) {
+      if (i == 0)
+        SDL_SetRenderDrawColor(renderer, 0, 250, 0,
+                               SDL_ALPHA_OPAQUE); // kafa - koyu yeşil
+      else
+        SDL_SetRenderDrawColor(renderer, 0, 200, 0,
+                               SDL_ALPHA_OPAQUE); // gövde - açık yeşil
       SDL_FRect rect = {snake.body[i].x * CELL_SIZE,
                         snake.body[i].y * CELL_SIZE, CELL_SIZE, CELL_SIZE};
       SDL_RenderFillRect(renderer, &rect);
