@@ -1,8 +1,10 @@
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <stdlib.h>
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
+static TTF_Font *font = NULL;
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -67,6 +69,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  if (!TTF_Init()) {
+    SDL_Log("Couldn't initialize TTF: %s", SDL_GetError());
+    return 1;
+  }
+
+  font = TTF_OpenFont("/usr/share/fonts/TTF/JetBrainsMonoNerdFontMono-Bold.ttf",
+                      24);
+  if (!font) {
+    SDL_Log("Couldn't load font: %s", SDL_GetError());
+    return 1;
+  }
+
   if (!SDL_CreateWindowAndRenderer("Snake", WINDOW_WIDTH, WINDOW_HEIGHT, 0,
                                    &window, &renderer)) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
@@ -78,6 +92,7 @@ int main(int argc, char *argv[]) {
   Snake snake;
   Point food;
   snake_init(&snake);
+  int score = 0;
   srand(SDL_GetTicks());
   food_spawn(&food);
 
@@ -111,8 +126,15 @@ int main(int argc, char *argv[]) {
           snake.body[0].y < 0 || snake.body[0].y >= GRID_HEIGHT) {
         running = 0;
       }
+      for (int i = 1; i < snake.length; i++) {
+        if (snake.body[0].x == snake.body[i].x &&
+            snake.body[0].y == snake.body[i].y) {
+          running = 0;
+        }
+      }
       if (snake.body[0].x == food.x && snake.body[0].y == food.y) {
         snake.length++;
+        score++;
         food_spawn(&food);
       }
       last_move = now;
@@ -131,9 +153,22 @@ int main(int argc, char *argv[]) {
     SDL_FRect frect = {food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE,
                        CELL_SIZE};
     SDL_RenderFillRect(renderer, &frect);
+
+    char score_text[32];
+    SDL_snprintf(score_text, sizeof(score_text), "Skor: %d", score);
+    SDL_Color white = {255, 255, 255, 255};
+    SDL_Surface *surface = TTF_RenderText_Solid(font, score_text, 0, white);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FRect score_rect = {10, 10, surface->w, surface->h};
+    SDL_DestroySurface(surface);
+    SDL_RenderTexture(renderer, texture, NULL, &score_rect);
+    SDL_DestroyTexture(texture);
+
     SDL_RenderPresent(renderer);
   }
 
+  TTF_CloseFont(font);
+  TTF_Quit();
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
