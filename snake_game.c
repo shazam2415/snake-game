@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 static SDL_Window *window = NULL;
@@ -93,6 +94,7 @@ int main(int argc, char *argv[]) {
   Point food;
   snake_init(&snake);
   int score = 0;
+  int game_over = 0;
   srand(SDL_GetTicks());
   food_spawn(&food);
 
@@ -101,6 +103,53 @@ int main(int argc, char *argv[]) {
   SDL_Event event;
 
   while (running) {
+
+    if (game_over) {
+      // Q ile çık, R ile restart
+      while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_EVENT_QUIT)
+          running = 0;
+        if (event.type == SDL_EVENT_KEY_DOWN) {
+          if (event.key.scancode == SDL_SCANCODE_Q)
+            running = 0;
+          if (event.key.scancode == SDL_SCANCODE_R) {
+            snake_init(&snake);
+            score = 0;
+            game_over = 0;
+            food_spawn(&food);
+          }
+        }
+      }
+      // game over ekranı çiz
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+      SDL_RenderClear(renderer);
+
+      char go_text[64];
+      snprintf(go_text, sizeof(go_text), "GAME OVER - Skor: %d", score);
+      SDL_Color red = {255, 0, 0, 255};
+      SDL_Surface *surface = TTF_RenderText_Solid(font, go_text, 0, red);
+      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+      SDL_FRect rect = {WINDOW_WIDTH / 2 - surface->w / 2,
+                        WINDOW_HEIGHT / 2 - surface->h / 2, surface->w,
+                        surface->h};
+      SDL_DestroySurface(surface);
+      SDL_RenderTexture(renderer, texture, NULL, &rect);
+      SDL_DestroyTexture(texture);
+
+      SDL_Color white = {255, 255, 255, 255};
+      SDL_Surface *s2 =
+          TTF_RenderText_Solid(font, "R: Yeniden Baslat  Q: Cik", 0, white);
+      SDL_Texture *t2 = SDL_CreateTextureFromSurface(renderer, s2);
+      SDL_FRect rect2 = {WINDOW_WIDTH / 2 - s2->w / 2, WINDOW_HEIGHT / 2 + 40,
+                         s2->w, s2->h};
+      SDL_DestroySurface(s2);
+      SDL_RenderTexture(renderer, t2, NULL, &rect2);
+      SDL_DestroyTexture(t2);
+
+      SDL_RenderPresent(renderer);
+      continue;
+    }
+
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_EVENT_QUIT)
         running = 0;
@@ -124,12 +173,12 @@ int main(int argc, char *argv[]) {
       snake_move(&snake);
       if (snake.body[0].x < 0 || snake.body[0].x >= GRID_WIDTH ||
           snake.body[0].y < 0 || snake.body[0].y >= GRID_HEIGHT) {
-        running = 0;
+        game_over = 1;
       }
       for (int i = 1; i < snake.length; i++) {
         if (snake.body[0].x == snake.body[i].x &&
             snake.body[0].y == snake.body[i].y) {
-          running = 0;
+          game_over = 1;
         }
       }
       if (snake.body[0].x == food.x && snake.body[0].y == food.y) {
