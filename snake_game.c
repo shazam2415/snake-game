@@ -75,15 +75,16 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  font = TTF_OpenFont("/usr/share/fonts/TTF/JetBrainsMonoNerdFontMono-Bold.ttf",
-                      24);
+  font = TTF_OpenFont("font.ttf", 16);
+
   if (!font) {
     SDL_Log("Couldn't load font: %s", SDL_GetError());
     return 1;
   }
 
-  if (!SDL_CreateWindowAndRenderer("Snake", WINDOW_WIDTH, WINDOW_HEIGHT, 0,
-                                   &window, &renderer)) {
+  if (!SDL_CreateWindowAndRenderer("Snake Game - Programlama 2 Dersi",
+                                   WINDOW_WIDTH, WINDOW_HEIGHT, 0, &window,
+                                   &renderer)) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     return 1;
   }
@@ -125,7 +126,7 @@ int main(int argc, char *argv[]) {
       SDL_RenderClear(renderer);
 
       char go_text[64];
-      snprintf(go_text, sizeof(go_text), "GAME OVER - Skor: %d", score);
+      snprintf(go_text, sizeof(go_text), "GAME OVER - Score: %d", score);
       SDL_Color red = {255, 0, 0, 255};
       SDL_Surface *surface = TTF_RenderText_Solid(font, go_text, 0, red);
       SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -138,7 +139,7 @@ int main(int argc, char *argv[]) {
 
       SDL_Color white = {255, 255, 255, 255};
       SDL_Surface *s2 =
-          TTF_RenderText_Solid(font, "R: Yeniden Baslat  Q: Cik", 0, white);
+          TTF_RenderText_Solid(font, "R: Restart  Q: Quit", 0, white);
       SDL_Texture *t2 = SDL_CreateTextureFromSurface(renderer, s2);
       SDL_FRect rect2 = {WINDOW_WIDTH / 2 - s2->w / 2, WINDOW_HEIGHT / 2 + 40,
                          s2->w, s2->h};
@@ -169,7 +170,7 @@ int main(int argc, char *argv[]) {
     }
 
     Uint64 now = SDL_GetTicks();
-    if (now - last_move >= 150) {
+    if (now - last_move >= 250) {
       snake_move(&snake);
       if (snake.body[0].x < 0 || snake.body[0].x >= GRID_WIDTH ||
           snake.body[0].y < 0 || snake.body[0].y >= GRID_HEIGHT) {
@@ -210,7 +211,7 @@ int main(int argc, char *argv[]) {
     SDL_RenderFillRect(renderer, &frect);
 
     char score_text[32];
-    SDL_snprintf(score_text, sizeof(score_text), "Skor: %d", score);
+    SDL_snprintf(score_text, sizeof(score_text), "Score: %d", score);
     SDL_Color white = {255, 255, 255, 255};
     SDL_Surface *surface = TTF_RenderText_Solid(font, score_text, 0, white);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
